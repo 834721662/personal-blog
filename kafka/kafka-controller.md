@@ -1,7 +1,9 @@
 [TOC]
 
 ##Kafka Controller
+
 ###controller简介
+
 in a Kafka cluster, one of the brokers serves as the controller, which is responsible for managing the states of partitions and replicas and for performing administrative tasks like reassigning partitions. 
 
 在Kafka集群中存在多个broker，其中一个broker会选举成controller，负责整个分区管理分区和副本的状态，并执行管理任务，比如重新分配分区, partition的leader 副本故障，由controller 负责为该partition重新选举新的leader 副本；当检测到ISR列表发生变化，有controller通知集群中所有broker更新其MetadataCache信息；或者增加某个topic分区的时候也会由controller管理分区的重新分配工作。
@@ -9,6 +11,7 @@ in a Kafka cluster, one of the brokers serves as the controller, which is respon
 ---
 
 ###kafkaController选举
+
 在每个broker启动的时候都会自动调用Kafka.startup方法，但是只有一个broker会成为controller  
 作用: 
 1. registerSessionExpirationListener方法: 用于在zk会话失效后重连时取消注册在zookeeper上的各种Listener
@@ -98,6 +101,7 @@ ZookeeperLeaderElector.elect函数负责选举leader，KafkaController选举是�
 
 ---
 ###kafkaController启动
+
   当一个broker成为controller之后执行的操作:
   1. 更新controller epoch,并把它写入zk，新的 epoch > 旧的 epoch
   2. 监听zk路径/admin/reassign_partitions  监听重新分配分区的信息
@@ -152,14 +156,17 @@ ZookeeperLeaderElector.elect函数负责选举leader，KafkaController选举是�
 ```
 
 ----
+
 ###kaffaController工作行为
+
 ####Create Topic
+
 回顾一下创建topic的方法:
 ```java
     bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test 
 ```
 这一步通过zk完成，在/brokers/topics/[topic]/路径下写入对应的主题，并且分配分区和副本。
-![创建topic](http://cf.meitu.com/confluence/download/attachments/63432943/%E5%88%9B%E5%BB%BAtopic.png?version=2&modificationDate=1532351219469&api=v2)
+
 
 controller 在启动的时候通过注册监听器，监听路径： /brokers/topics/,当zk创建一个新的[topic]znode之后，触发TopicChangeListener
 接着controller获取到对应的信息开始执行以下工作: 
@@ -200,10 +207,12 @@ controller 在启动的时候通过注册监听器，监听路径： /brokers/to
       NewReplica->OnlineReplica:在create topic场景下，仅更新replica状态为NewReplica
 
 用一个图总结一下create topic执行过程： 
-![创建topic过程](http://cf.meitu.com/confluence/download/attachments/63432943/%E5%9B%9E%E9%A1%BE.png?version=2&modificationDate=1532351201602&api=v2)
+
 
 ---
+
 ####broker.startup
+
 主要描述broker启动时候对分区和副本状态的影响
 在broker启动后调用KafkaController.startup,实际上是创建一个KafkaHealthCheck对象,并调用KafkaHealthCheck->register方法
 ```java
@@ -301,7 +310,9 @@ KafkaHealthCheck->register方法将在 /brokers/ids/[brokerId]/路径下创建�
 - 对于正在执行reassign的partition，调用onPartitionReassignment操作；
 
 ---
+
 ####broker.failover
+
 在broker宕机之后，zk当中的临时znode被删除，上文的handleChildChange -> onBrokerFailure方法
 ```java
   def onBrokerFailure(deadBrokers: Seq[Int]) {
@@ -336,7 +347,9 @@ KafkaHealthCheck->register方法将在 /brokers/ids/[brokerId]/路径下创建�
 *根据PartitionStateMachine -> handleStateChange方法总结而来*
 
 ---
+
 ####ReplicaStateMachine的状态转换机制过程
+
 ReplicaStateMachine的七种状态(副本状态相当复杂):
     NewReplica: 在partition reassignment期间KafkaController创建New replica;
     OnlineReplica: 当一个replica变为一个parition的assingned replicas时, 其状态变为OnlineReplica, 即一个有效的OnlineReplica. Online状态的parition才能转变为leader或isr中的一员;
@@ -346,12 +359,10 @@ ReplicaStateMachine的七种状态(副本状态相当复杂):
     ReplicaDeletionIneligible: Replica删除失败后,其状态转变为ReplicaDeletionIneligible;
     NonExistentReplica: Replica成功删除后, 从ReplicaDeletionSuccessful状态转变为NonExistentReplica状态.
 
-![副本状态机](http://cf.meitu.com/confluence/download/attachments/63432943/%E5%89%AF%E6%9C%AC%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E5%8F%98%E5%8C%96.png?version=2&modificationDate=1532351208612&api=v2)
+
 *根据PartitionStateMachine -> handleStateChange方法总结而来*
 
 leader 是针对 副本而言的
 一个topic 存在多个分区，多个副本，同一个分区的数量，取决于副本的数量
 leader副本 拥有全部的分区，其他的副本会向leader同步数据
 leader副本下线，会触发一个重新选举的过程
-
-GggG
