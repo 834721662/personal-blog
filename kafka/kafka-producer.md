@@ -2,7 +2,9 @@
 
 ###KafkaProducer
 [官方文档](http://kafka.apache.org/0110/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html)
+
 这里描述的是Java版本的客户端，所有的代码针对的都是0.10
+
 **当前的内容主要通过从源代码上描述KafkaProducer的运行与机制**
 ---
 
