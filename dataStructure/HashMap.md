@@ -22,26 +22,28 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
     /** 最大容量（必须是2的幂且小于2的30次方，传入容量过大将被这个值替换） */
-	static final int MAXIMUM_CAPACITY = 1 << 30;
+    static final int MAXIMUM_CAPACITY = 1 << 30;
 
-	/** 默认的负载因子 0.75 */
-	static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    /** 默认的负载因子 0.75 */
+    static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
-	/**  这里表示一个桶的大小: 可以理解为 当一个桶(bucket)大小超过8时，会使得 bucket 由 链表 转化为 红黑树  */
-	static final int TREEIFY_THRESHOLD = 8;
+    /**  这里表示一个桶的大小: 可以理解为 当一个桶(bucket)大小超过8时，会使得 bucket 由 链表 转化为 红黑树  */
+    static final int TREEIFY_THRESHOLD = 8;
 
-	/** 与上一个相反: 当一棵树的大小 小于六的时候就会由树转化为 链表 */
-	static final int UNTREEIFY_THRESHOLD = 6;
+    /** 与上一个相反: 当一棵树的大小 小于六的时候就会由树转化为 链表 */
+    static final int UNTREEIFY_THRESHOLD = 6;
 
-	/** 最小的树的容量， 这里应该是是 四倍的TREEIFY_THRESHOLD，避免进行扩容、树形化选择的冲突   */
-	static final int MIN_TREEIFY_CAPACITY = 64;
+    /** 最小的树的容量， 这里应该是是 四倍的TREEIFY_THRESHOLD，避免进行扩容、树形化选择的冲突   */
+    static final int MIN_TREEIFY_CAPACITY = 64;
 
 
-	/** 计算某个 key 的hash值 */
-	static final int hash(Object key) {
+    /** 计算某个 key 的hash值 */
+    static final int hash(Object key) {
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
+
+
 
 
     /** 如果实现了Comparable，返回x的实际类型，也就是Class<C>，否则返回null. */
@@ -81,7 +83,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * n与n进行或操作再复制给n，接着无符号右移(空白补零)，最后得到一个 power of two size(2的幂数，比cap大)
      */
     static final int tableSizeFor(int cap) {
-    	// cap的二进制里低位全部转成1
+        // cap的二进制里低位全部转成1
         // 解释一个:n |= n >>> 1 ==> n = n>>>1 | n
         // 假设n= 0001 xxxx xxxx xxxx
         // 计算:0001 xxxx xxxx xxxx | 0000 1xxx xxxx xxxx => 0001 1xxx xxxx xxxx
@@ -166,7 +168,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
         int s = m.size();
         if (s > 0) {
-        	//table 是 上面那个 Node<K, V> 数组
+            //table 是 上面那个 Node<K, V> 数组
             if (table == null) { // pre-size
                 float ft = ((float)s / loadFactor) + 1.0F;
                 int t = ((ft < (float)MAXIMUM_CAPACITY) ?
@@ -236,19 +238,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int n; 
         K k;
         if ((tab = table) != null && (n = tab.length) > 0 && 
-        	//注意:根据输入的hash值，可以直接计算出对应的下标（n - 1）& hash，缩小查询范围，如果存在结果，则必定在数组的这个位置上。
-        	//这里的n是表的长度， 长度 - 1 再与 hash值进行一个与操作
-        	(first = tab[(n - 1) & hash]) != null) {
+            //注意:根据输入的hash值，可以直接计算出对应的下标（n - 1）& hash，缩小查询范围，如果存在结果，则必定在数组的这个位置上。
+            //这里的n是表的长度， 长度 - 1 再与 hash值进行一个与操作
+            (first = tab[(n - 1) & hash]) != null) {
             if (first.hash == hash && // always check first node
                 ((k = first.key) == key || (key != null && key.equals(k))))
                 return first;
             if ((e = first.next) != null) {
-            	//这里判断 这个节点是 红黑树还是链表，如果是红黑树，递归搜索
+                //这里判断 这个节点是 红黑树还是链表，如果是红黑树，递归搜索
                 if (first instanceof TreeNode)
                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
                 //如果是一个链表，进行循环
                 do {
-                	//注意: 这里判断的条件是: hash值相同，并且key符合equals
+                    //注意: 这里判断的条件是: hash值相同，并且key符合equals
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
                         return e;
@@ -269,7 +271,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-	 * 如果先前的映射包含键的映射，则替换旧值。
+     * 如果先前的映射包含键的映射，则替换旧值。
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
@@ -295,7 +297,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
-    	////tab[]为数组，p是每个桶
+        ////tab[]为数组，p是每个桶
         Node<K,V>[] tab; 
         Node<K,V> p; 
         int n, i;
@@ -305,11 +307,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             n = (tab = resize()).length;
         //计算元素所要储存的位置index,并对null做出处理
         if ((p = tab[i = (n - 1) & hash]) == null)
-        	//注意:，如果tab[i]==null，说明这个位置上没有元素，这个时候就创建一个新的Node元素
+            //注意:，如果tab[i]==null，说明这个位置上没有元素，这个时候就创建一个新的Node元素
             tab[i] = newNode(hash, key, value, null);
         else {
-        	//运行到这里，就说明这个要添加的位置上面已经有元素了，也就是发生了碰撞。这个时候就要具体情况分类讨论：
-        	// 1.key值相同，直接覆盖 2.链表已经超过了8位，变成了红黑树 3.链表是正常的链表
+            //运行到这里，就说明这个要添加的位置上面已经有元素了，也就是发生了碰撞。这个时候就要具体情况分类讨论：
+            // 1.key值相同，直接覆盖 2.链表已经超过了8位，变成了红黑树 3.链表是正常的链表
             Node<K,V> e; 
             K k;
             //如果hash相同 key符合equals，就覆盖这个元素
@@ -321,7 +323,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             else {
                 for (int binCount = 0; ; ++binCount) {
-                	//链表的下一个节点为空的情况，就新生成一个，执行插入
+                    //链表的下一个节点为空的情况，就新生成一个，执行插入
                     if ((e = p.next) == null) {
                         p.next = newNode(hash, key, value, null);
                         //如果链表的长度大于8，则转化为红黑树
@@ -352,7 +354,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         return null;
 
 
-	/**
+    /**
      * 扩容
      * @return the table
      */
@@ -362,7 +364,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         int oldThr = threshold;//旧的临界值
         int newCap, newThr = 0;
         if (oldCap > 0) {
-        	//如果容量大小大于最大容量，临界值提高到正无穷
+            //如果容量大小大于最大容量，临界值提高到正无穷
             if (oldCap >= MAXIMUM_CAPACITY) {
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
@@ -381,7 +383,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         }
         //如果newThr == 0，说明为上面 else if (oldThr > 0)为true
         if (newThr == 0) { 
-        	//ft为临时变量，用于判断阈值的合法性
+            //ft为临时变量，用于判断阈值的合法性
             float ft = (float)newCap * loadFactor;
             //计算新的阈值
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
@@ -393,7 +395,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];   //改变table全局变量为，扩容后的newTable
         table = newTab;
         if (oldTab != null) {
-        	//遍历整个旧数组
+            //遍历整个旧数组
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
                 if ((e = oldTab[j]) != null) {
@@ -405,7 +407,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     else if (e instanceof TreeNode)
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { // preserve order
-                    	//这里是一个链表的情况
+                        //这里是一个链表的情况
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
                         Node<K,V> next;
@@ -537,8 +539,32 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 }
 ```
 
+关于hash()
+首先将得到key对应的哈希值：h = key.hashCode()，然后通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)我们分布来讲解这个index产生的步骤:
+
+1. 取key的hashcode值：
+①Object类的hashCode
+  返回对象的经过处理后的内存地址，由于每个对象的内存地址都不一样，所以哈希码也不一样。这个是native方法，取决于JVM的内部设计，一般是某种C地址的偏移。
+②String类的hashCode
+  根据String类包含的字符串的内容，根据一种特殊算法返回哈希码，只要字符串的内容相同，返回的哈希码也相同。
+③Integer等包装类
+  返回的哈希码就是Integer对象里所包含的那个整数的数值，例如Integer i1=new Integer(100)，i1.hashCode的值就是100 。
+由此可见，2个一样大小的Integer对象，返回的哈希码也一样。
+④int，char这样的基础类
+  它们不需要hashCode，如果需要存储时，将进行自动装箱操作，计算方法包装类。
+
+2. hashCode()的高16位异或低16位
+在JDK1.9的实现中，优化了高位运算的算法，通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)，主要是从速度、功效、质量来考虑的。
+这么做可以在数组table的length比较小的时候，也能保证考虑到高低Bit都参与到Hash的计算中，同时不会有太大的开销。
+
+3. (n-1) & hash; 取模运算
+这个n我们说过是table的长度，那么n-1就是table数组元素应有的下表。
+这个方法非常巧妙，它通过hash & (table.length -1)来得到该对象的保存位，而HashMap底层数组的长度总是2的n次方，这是HashMap在速度上的优化。
+当length总是2的n次方时，hash&(length-1) 运算等价于对length取模，也就是hash % length，但是&比%具有更高的效率。
+
+
+
 这里是中间结构，最基础的哈希节点,貌似 treeNode 和 LinkedHashMap 也是用的它
-之前版本的叫法是: Entry
 ```java
 //Node 是单向链表
 static class Node<K,V> implements Map.Entry<K,V> {
