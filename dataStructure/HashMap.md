@@ -352,8 +352,23 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             resize();
         afterNodeInsertion(evict);
         return null;
+```
+for (int binCount = 0; ; ++binCount) {
+表示循环遍历链表，这个for循环当中实际上经历了以下几个步骤：
+e = p.next以及for语句之外后面的p = e;实际上是在向后循环遍历链表
+开始的时候P为每个桶的头元素，然后将P的引用域(本来指向的是下一个元素)指向空节点e，这个时候实际上就相当于将p的下一个元素赋值给了e,即e已经变成了p的下一个元素
+此时我们把这个复制的e单独提出来，进行了两个判断：
+第一个if：if ((e = p.next) == null)
+  如果e也就是p.next == null,那么说明当前的这个P已经是链表最后一个元素了
+这个时候采取尾插法添加一个新的元素:p.next = newNode(hash, key, value, null);,即直接将p的引用域指向这个新添加的元素
+如果添加新元素之后发现链表的长度超过了TREEIFY_THRESHOLD - 1也就是超过了8，那么调用treeifyBin(tab, hash);把这个链表转换成红黑树
+第二个if:if (e.hash == hash &&((k = e.key) == key || (key != null && key.equals(k))))
+  如果发现key值重复了，也就是要插入的key已经存在，那么直接break，结束遍历(不用再费劲去插入了)
+然后又将e赋给p，这个时候的p已经向后移动了一位。重复上面的过程，直到循环完整个链表，或者break出来
+整个不是红黑树的for循环(或者else)中就做了这三件事
 
 
+```java
     /**
      * 扩容
      * @return the table
@@ -540,20 +555,20 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 ```
 
 关于hash()
-首先将得到key对应的哈希值：h = key.hashCode()，然后通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)我们分布来讲解这个index产生的步骤:
+首先将得到key对应的哈希值：h = key.hashCode()，然后通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)
 
 1. 取key的hashcode值：
-①Object类的hashCode
+Object类的hashCode
   返回对象的经过处理后的内存地址，由于每个对象的内存地址都不一样，所以哈希码也不一样。这个是native方法，取决于JVM的内部设计，一般是某种C地址的偏移。
-②String类的hashCode
+String类的hashCode
   根据String类包含的字符串的内容，根据一种特殊算法返回哈希码，只要字符串的内容相同，返回的哈希码也相同。
-③Integer等包装类
+Integer等包装类
   返回的哈希码就是Integer对象里所包含的那个整数的数值，例如Integer i1=new Integer(100)，i1.hashCode的值就是100 。
 由此可见，2个一样大小的Integer对象，返回的哈希码也一样。
-④int，char这样的基础类
+int，char这样的基础类
   它们不需要hashCode，如果需要存储时，将进行自动装箱操作，计算方法包装类。
 
-2. hashCode()的高16位异或低16位
+2. hashCode()的高16位 异或 低16位
 在JDK1.9的实现中，优化了高位运算的算法，通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)，主要是从速度、功效、质量来考虑的。
 这么做可以在数组table的length比较小的时候，也能保证考虑到高低Bit都参与到Hash的计算中，同时不会有太大的开销。
 
