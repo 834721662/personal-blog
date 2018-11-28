@@ -1,19 +1,20 @@
 [TOC]
 
 
-####JDK9 HashMap 源码阅读
+#### JDK9 HashMap 源码阅读
 
+https://blog.csdn.net/zhengshidao/article/details/71006084
 
-
-HashMap由链表+数组组成，它的底层结构是一个数组，而数组的元素是一个单向链表。默认是长度为16位的数组，每个数组储存的元素代表的是每一个链表的头结点。
+##### 实现原理
+HashMap由链表+数组组成，它的底层结构是一个数组，而数组的元素是一个单向链表。
+默认是长度为16位的数组，每个数组储存的元素代表的是每一个链表的头结点。
 我们平时常用的MD5，SSL等都属于Hash算法，通过Key进行Hash的计算，就可以获取Key对应的HashCode。
 好的Hash算法可以计算出几乎出独一无二的HashCode，如果出现了重复的hashCode，就称作碰撞，就算是MD5这样优秀的算法也会发生碰撞，即两个不同的key也有可能生成相同的MD5。
 正常情况下，我们通过hash算法，往HashMap的数组中插入元素。
 如果发生了碰撞事件，那么意味这数组的一个位置要插入两个或者多个元素，这个时候数组上面挂的链表起作用了，链表会将数组某个节点上多出的元素按照尾插法(jdk1.7及以前为头差法)的方式添加。
 
 ```java
-public class HashMap<K,V> extends AbstractMap<K,V>
-    implements Map<K,V>, Cloneable, Serializable {
+...
 
     /** 用于序列化的版本id **/
     private static final long serialVersionUID = 362498820763181265L;
@@ -36,15 +37,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /** 最小的树的容量， 这里应该是是 四倍的TREEIFY_THRESHOLD，避免进行扩容、树形化选择的冲突   */
     static final int MIN_TREEIFY_CAPACITY = 64;
 
-
     /** 计算某个 key 的hash值 */
     static final int hash(Object key) {
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
-
-
-
 
     /** 如果实现了Comparable，返回x的实际类型，也就是Class<C>，否则返回null. */
     /** 例子:public class AppVersion implements Comparable<AppVersion> */
@@ -76,19 +73,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         return (x == null || x.getClass() != kc ? 0 :
                 ((Comparable)k).compareTo(x));
     }
+...
+```
 
-
-
+初始化的时候通过位运算高效得到对应的容量大小
+```java
+...
     /**
      * n与n进行或操作再复制给n，接着无符号右移(空白补零)，最后得到一个 power of two size(2的幂数，比cap大)
      */
     static final int tableSizeFor(int cap) {
         // cap的二进制里低位全部转成1
-        // 解释一个:n |= n >>> 1 ==> n = n>>>1 | n
-        // 假设n= 0001 xxxx xxxx xxxx
+        // 解释:n |= n >>> 1 ==> n = n >>> 1 | n  (n进行无符号左移一位，然后与n进行或操作，再赋值给n)
+        // 假设n = 0001 xxxx xxxx xxxx
         // 计算:0001 xxxx xxxx xxxx | 0000 1xxx xxxx xxxx => 0001 1xxx xxxx xxxx
         // 此时最高位就是两个连续的1,然后操作n |= n >>> 2,那么就变成 0001 111x xxxx xxxx
-        // 所以变1的节奏个数是:1 2 4 8 16 相加 31 刚好足够把32位的一个值低位全部变成1.
+        // 所以变1的节奏个数是:1 2 4 8 16 相加 31 刚好足够把32位的一个值低位全部变成1
         // 只不过cap最大也就是2的30次
         int n = cap - 1;
         n |= n >>> 1;
@@ -549,9 +549,6 @@ e = p.next以及for语句之外后面的p = e;实际上是在向后循环遍历�
         }
         return null;
     }
-
-
-}
 ```
 
 关于hash()
@@ -560,11 +557,12 @@ e = p.next以及for语句之外后面的p = e;实际上是在向后循环遍历�
 1. 取key的hashcode值：
 Object类的hashCode
   返回对象的经过处理后的内存地址，由于每个对象的内存地址都不一样，所以哈希码也不一样。这个是native方法，取决于JVM的内部设计，一般是某种C地址的偏移。
+  hashCode一般存储在java对象头当中，32位虚拟机位25bit，64位为31bit
 String类的hashCode
   根据String类包含的字符串的内容，根据一种特殊算法返回哈希码，只要字符串的内容相同，返回的哈希码也相同。
 Integer等包装类
-  返回的哈希码就是Integer对象里所包含的那个整数的数值，例如Integer i1=new Integer(100)，i1.hashCode的值就是100 。
-由此可见，2个一样大小的Integer对象，返回的哈希码也一样。
+  返回的哈希码就是Integer对象里所包含的那个整数的数值，例如Integer i1=new Integer(100)，i1.hashCode的值就是100。
+由此可见，2个一样大小的Integer对象，返回的哈希码也一样。(125 to -127的封装对象，内存地址是相同的...)
 int，char这样的基础类
   它们不需要hashCode，如果需要存储时，将进行自动装箱操作，计算方法包装类。
 
